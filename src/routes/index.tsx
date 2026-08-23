@@ -4,6 +4,7 @@ import {
   BarChart3,
   BookOpen,
   Bookmark,
+  Calendar,
   FileText,
   Gamepad2,
   Languages,
@@ -14,9 +15,12 @@ import {
   Printer,
   Share2,
   Sparkles,
+  Target,
+  Trophy,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
 
 import catImg from "@/assets/cat.png";
 import dogImg from "@/assets/dog.png";
@@ -197,6 +201,24 @@ function Home() {
                 {lang === "ar" ? "تقدمي" : "Progress"}
               </Link>
             </Button>
+            <Button asChild variant="ghost" size="sm" className="rounded-full text-xs">
+              <Link to="/review">
+                <Target className="mr-1.5 size-4" />
+                {t.navReview}
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="rounded-full text-xs">
+              <Link to="/plan">
+                <Calendar className="mr-1.5 size-4" />
+                {t.navPlan}
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="rounded-full text-xs">
+              <Link to="/leaderboard">
+                <Trophy className="mr-1.5 size-4" />
+                {t.navLeaderboard}
+              </Link>
+            </Button>
             <AuthHeader />
             <InstallPWA />
             <Button
@@ -208,6 +230,7 @@ function Home() {
               <Languages className="mr-2 size-4" /> {t.langSwitch}
             </Button>
           </div>
+
 
         </div>
 

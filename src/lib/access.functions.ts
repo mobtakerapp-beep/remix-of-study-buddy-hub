@@ -18,27 +18,32 @@ export type CodeRow = {
 /** ✅ إيميلات الأدمن — عدّلي هذه القائمة لإضافة أو حذف أدمن. */
 export const ADMIN_EMAILS = ["uuxz272@gmail.com"];
 
-async function assertAdmin(context: { supabase: any; userId: string }) {
-  const { data, error } = await context.supabase.rpc("has_role", {
-    _user_id: context.userId,
-    _role: "admin",
-  });
-  if (error || !data) throw new Error("Forbidden");
+async function assertAdmin(context: { userId: string }) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("user_roles")
+    .select("id")
+    .eq("user_id", context.userId)
+    .eq("role", "admin")
+    .limit(1);
+  if (!data || data.length === 0) throw new Error("Forbidden");
 }
 
 export const amIAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (data) return { isAdmin: true };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .limit(1);
+    if (data && data.length > 0) return { isAdmin: true };
 
     // Self-heal: grant the admin role to allow-listed emails on first check.
     const email = String((context as any).claims?.email ?? "").toLowerCase();
     if (email && ADMIN_EMAILS.includes(email)) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await supabaseAdmin
         .from("user_roles")
         .upsert({ user_id: context.userId, role: "admin" }, { onConflict: "user_id,role" });
@@ -46,6 +51,7 @@ export const amIAdmin = createServerFn({ method: "GET" })
     }
     return { isAdmin: false };
   });
+
 
 
 /** Redeem an activation code — binds the subscription to the signed-in account. */
@@ -125,8 +131,9 @@ export const redeemCode = createServerFn({ method: "POST" })
 export const adminListCodes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<CodeRow[]> => {
-    await assertAdmin(context as never);
+    await assertAdmin({ userId: context.userId });
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const { data } = await supabaseAdmin
       .from("activation_codes")
       .select("*")
@@ -160,8 +167,9 @@ export const adminCreateCodes = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as never);
+    await assertAdmin({ userId: context.userId });
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     const gen = () => {
       const bytes = new Uint8Array(12);
@@ -200,8 +208,9 @@ export type RedemptionRow = {
 export const adminListRedemptions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<RedemptionRow[]> => {
-    await assertAdmin(context as never);
+    await assertAdmin({ userId: context.userId });
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
 
     const { data: redemptions } = await supabaseAdmin
       .from("code_redemptions")
@@ -253,8 +262,9 @@ export const adminSetCodeActive = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid(), active: z.boolean() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as never);
+    await assertAdmin({ userId: context.userId });
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     await supabaseAdmin.from("activation_codes").update({ active: data.active }).eq("id", data.id);
     return { ok: true };
   });

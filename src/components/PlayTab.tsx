@@ -1,4 +1,4 @@
-import { Check, Ear, RotateCcw, Volume2, VolumeX, X } from "lucide-react";
+import { Check, Ear, ImageIcon, RotateCcw, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -12,7 +12,10 @@ import { useI18n } from "@/lib/i18n";
 import { playClick, playCorrect, playWin, playWrong, setSoundEnabled } from "@/lib/sfx";
 import { fmtNum, optionLetter, type LessonPackage } from "@/lib/lesson-types";
 import { logStudySession } from "@/lib/study.functions";
+import { addReviewItems } from "@/lib/review.functions";
+import { generateQuestionImage } from "@/lib/question-image.functions";
 import { speak, stopSpeech } from "@/lib/tts";
+
 
 type Item = {
   id: string;
@@ -53,9 +56,15 @@ export function PlayTab({ pkg }: { pkg: LessonPackage }) {
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
   const [sound, setSound] = useState(true);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
   const logSession = useServerFn(logStudySession);
+  const addReview = useServerFn(addReviewItems);
+  const generateImage = useServerFn(generateQuestionImage);
   const startedAt = useRef(Date.now());
   const logged = useRef(false);
+  const addedReview = useRef<Set<string>>(new Set());
+
 
   useEffect(() => stopSpeech, []);
 
@@ -72,11 +81,54 @@ export function PlayTab({ pkg }: { pkg: LessonPackage }) {
       playCorrect();
     } else {
       playWrong();
+      // Send wrong answer to spaced-repetition queue once per question.
+      if (!addedReview.current.has(current.id)) {
+        addedReview.current.add(current.id);
+        void addReview({
+          data: {
+            lessonId: null,
+            topic: pkg.title || "",
+            grade: pkg.grade ?? null,
+            language: pkg.language,
+            cards: [
+              {
+                kind: current.kind,
+                prompt: current.prompt,
+                options: current.options,
+                answerIndex: current.answerIndex,
+                wasWrong: true,
+              },
+            ],
+          },
+        }).catch(() => {});
+      }
     }
   };
 
+  const handleImage = async () => {
+    if (imageLoading || imageUrl) return;
+    setImageLoading(true);
+    try {
+      const res = await generateImage({
+        data: {
+          prompt: current.prompt,
+          topic: pkg.title || "",
+          language: pkg.language,
+          grade: pkg.grade ?? null,
+        },
+      });
+      setImageUrl(res.image);
+    } catch {
+      /* ignore — toast would be noisy during play */
+    } finally {
+      setImageLoading(false);
+    }
+  };
+
+
   const next = () => {
     playClick();
+    setImageUrl(null);
     if (index + 1 >= items.length) {
       setFinished(true);
       playWin();
@@ -105,9 +157,12 @@ export function PlayTab({ pkg }: { pkg: LessonPackage }) {
     setPicked(null);
     setScore(0);
     setFinished(false);
+    setImageUrl(null);
+    addedReview.current.clear();
     startedAt.current = Date.now();
     logged.current = false;
   };
+
 
   if (finished) {
     return (
@@ -153,29 +208,43 @@ export function PlayTab({ pkg }: { pkg: LessonPackage }) {
           </div>
         </div>
         <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t.listen}
-          onClick={() => {
-            void speak([current.prompt, ...current.options].join(". "), pkg.language).catch(() => {});
-          }}
-        >
-          <Ear className="size-5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t.sound}
-          onClick={() => {
-            const on = !sound;
-            setSound(on);
-            setSoundEnabled(on);
-          }}
-        >
-          {sound ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t.imageBtn}
+            onClick={() => void handleImage()}
+            disabled={imageLoading || Boolean(imageUrl)}
+          >
+            {imageLoading ? (
+              <span className="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : (
+              <ImageIcon className="size-5" />
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t.listen}
+            onClick={() => {
+              void speak([current.prompt, ...current.options].join(". "), pkg.language).catch(() => {});
+            }}
+          >
+            <Ear className="size-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t.sound}
+            onClick={() => {
+              const on = !sound;
+              setSound(on);
+              setSoundEnabled(on);
+            }}
+          >
+            {sound ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
+          </Button>
         </div>
+
       </div>
 
       <Progress value={progress} className="h-3" />
@@ -185,9 +254,18 @@ export function PlayTab({ pkg }: { pkg: LessonPackage }) {
           {current.prompt}
         </p>
 
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt=""
+            className="mx-auto mt-6 max-h-64 rounded-2xl object-contain shadow-[var(--shadow-soft)]"
+          />
+        )}
+
         <div
           className={`mt-8 grid gap-3 ${current.kind === "tf" ? "grid-cols-2" : "sm:grid-cols-2"}`}
         >
+
           {current.options.map((opt, i) => {
             const isAnswer = i === current.answerIndex;
             const isPicked = picked === i;
