@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MyLessonsRouteImport } from './routes/my-lessons'
+import { Route as PlanRouteImport } from './routes/plan'
 import { Route as ReviewRouteImport } from './routes/review'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SignupRouteImport } from './routes/signup'
@@ -40,6 +42,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -48,6 +55,11 @@ const LoginRoute = LoginRouteImport.update({
 const MyLessonsRoute = MyLessonsRouteImport.update({
   id: '/my-lessons',
   path: '/my-lessons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanRoute = PlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReviewRoute = ReviewRouteImport.update({
@@ -105,8 +117,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRouteWithChildren
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/my-lessons': typeof MyLessonsRoute
+  '/plan': typeof PlanRoute
   '/review': typeof ReviewRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -121,8 +135,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/my-lessons': typeof MyLessonsRoute
+  '/plan': typeof PlanRoute
   '/review': typeof ReviewRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -139,8 +155,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRouteWithChildren
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/my-lessons': typeof MyLessonsRoute
+  '/plan': typeof PlanRoute
   '/review': typeof ReviewRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
@@ -158,8 +176,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/leaderboard'
     | '/login'
     | '/my-lessons'
+    | '/plan'
     | '/review'
     | '/signin'
     | '/signup'
@@ -174,8 +194,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/leaderboard'
     | '/login'
     | '/my-lessons'
+    | '/plan'
     | '/review'
     | '/signin'
     | '/signup'
@@ -191,8 +213,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/leaderboard'
     | '/login'
     | '/my-lessons'
+    | '/plan'
     | '/review'
     | '/signin'
     | '/signup'
@@ -209,8 +233,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRouteWithChildren
+  LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   MyLessonsRoute: typeof MyLessonsRoute
+  PlanRoute: typeof PlanRoute
   ReviewRoute: typeof ReviewRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
@@ -244,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -256,6 +289,13 @@ declare module '@tanstack/react-router' {
       path: '/my-lessons'
       fullPath: '/my-lessons'
       preLoaderRoute: typeof MyLessonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan': {
+      id: '/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof PlanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/review': {
@@ -347,8 +387,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRouteWithChildren,
+  LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   MyLessonsRoute: MyLessonsRoute,
+  PlanRoute: PlanRoute,
   ReviewRoute: ReviewRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
