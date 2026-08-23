@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MyLessonsRouteImport } from './routes/my-lessons'
+import { Route as ReviewRouteImport } from './routes/review'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as StatsRouteImport } from './routes/stats'
@@ -47,6 +48,11 @@ const LoginRoute = LoginRouteImport.update({
 const MyLessonsRoute = MyLessonsRouteImport.update({
   id: '/my-lessons',
   path: '/my-lessons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SigninRoute = SigninRouteImport.update({
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/my-lessons': typeof MyLessonsRoute
+  '/review': typeof ReviewRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/stats': typeof StatsRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/my-lessons': typeof MyLessonsRoute
+  '/review': typeof ReviewRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/stats': typeof StatsRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/my-lessons': typeof MyLessonsRoute
+  '/review': typeof ReviewRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/stats': typeof StatsRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/login'
     | '/my-lessons'
+    | '/review'
     | '/signin'
     | '/signup'
     | '/stats'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/login'
     | '/my-lessons'
+    | '/review'
     | '/signin'
     | '/signup'
     | '/stats'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/login'
     | '/my-lessons'
+    | '/review'
     | '/signin'
     | '/signup'
     | '/stats'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   LoginRoute: typeof LoginRoute
   MyLessonsRoute: typeof MyLessonsRoute
+  ReviewRoute: typeof ReviewRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   StatsRoute: typeof StatsRoute
@@ -243,6 +256,13 @@ declare module '@tanstack/react-router' {
       path: '/my-lessons'
       fullPath: '/my-lessons'
       preLoaderRoute: typeof MyLessonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signin': {
@@ -329,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   LoginRoute: LoginRoute,
   MyLessonsRoute: MyLessonsRoute,
+  ReviewRoute: ReviewRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   StatsRoute: StatsRoute,
