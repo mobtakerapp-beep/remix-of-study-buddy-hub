@@ -131,8 +131,9 @@ export const redeemCode = createServerFn({ method: "POST" })
 export const adminListCodes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<CodeRow[]> => {
-    await assertAdmin(context as never);
+    await assertAdmin({ userId: context.userId });
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const { data } = await supabaseAdmin
       .from("activation_codes")
       .select("*")
@@ -166,8 +167,9 @@ export const adminCreateCodes = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as never);
+    await assertAdmin({ userId: context.userId });
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     const gen = () => {
       const bytes = new Uint8Array(12);
@@ -206,8 +208,9 @@ export type RedemptionRow = {
 export const adminListRedemptions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<RedemptionRow[]> => {
-    await assertAdmin(context as never);
+    await assertAdmin({ userId: context.userId });
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
 
     const { data: redemptions } = await supabaseAdmin
       .from("code_redemptions")
@@ -259,8 +262,9 @@ export const adminSetCodeActive = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid(), active: z.boolean() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as never);
+    await assertAdmin({ userId: context.userId });
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     await supabaseAdmin.from("activation_codes").update({ active: data.active }).eq("id", data.id);
     return { ok: true };
   });
