@@ -88,6 +88,33 @@ export type Database = {
           },
         ]
       }
+      leaderboard_entries: {
+        Row: {
+          correct: number
+          display_name: string
+          points: number
+          quizzes: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          correct?: number
+          display_name?: string
+          points?: number
+          quizzes?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          correct?: number
+          display_name?: string
+          points?: number
+          quizzes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lesson_shares: {
         Row: {
           created_at: string
@@ -136,6 +163,96 @@ export type Database = {
           school?: string
           teacher_name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      review_items: {
+        Row: {
+          answer_index: number
+          created_at: string
+          due_at: string
+          ease: number
+          grade: number | null
+          id: string
+          interval_days: number
+          kind: string
+          language: string
+          lapses: number
+          last_result: boolean | null
+          lesson_id: string | null
+          options: Json
+          prompt: string
+          question_hash: string
+          reps: number
+          topic: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer_index?: number
+          created_at?: string
+          due_at?: string
+          ease?: number
+          grade?: number | null
+          id?: string
+          interval_days?: number
+          kind?: string
+          language?: string
+          lapses?: number
+          last_result?: boolean | null
+          lesson_id?: string | null
+          options?: Json
+          prompt: string
+          question_hash: string
+          reps?: number
+          topic?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer_index?: number
+          created_at?: string
+          due_at?: string
+          ease?: number
+          grade?: number | null
+          id?: string
+          interval_days?: number
+          kind?: string
+          language?: string
+          lapses?: number
+          last_result?: boolean | null
+          lesson_id?: string | null
+          options?: Json
+          prompt?: string
+          question_hash?: string
+          reps?: number
+          topic?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_plans: {
+        Row: {
+          created_at: string
+          id: string
+          plan: Json
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan: Json
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan?: Json
+          user_id?: string
+          week_start?: string
         }
         Relationships: []
       }
