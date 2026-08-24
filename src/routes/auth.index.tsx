@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/sonner";
-import { lovable } from "@/integrations/lovable";
 import { supabase } from "@/integrations/supabase/client";
 
 import { useI18n } from "@/lib/i18n";
@@ -93,16 +92,14 @@ function AuthPage() {
   const signInWithGoogle = async () => {
     setLoading(true);
     try {
-      // Use the managed OAuth broker so the requested external callback is
-      // preserved instead of falling back to the preview site's auth URL.
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${PROD_ORIGIN}/auth/callback`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${PROD_ORIGIN}/auth/callback`,
+        },
       });
 
-      if (result.error) throw result.error;
-      if (!result.redirected) {
-        window.location.replace(`${PROD_ORIGIN}/`);
-      }
+      if (error) throw error;
     } catch (error) {
       const raw = error instanceof Error ? error.message : String(error ?? "");
       console.error("Google sign-in failed:", error);
@@ -111,8 +108,6 @@ function AuthPage() {
       setLoading(false);
     }
   };
-
-
 
   return (
     <main className="blob-bg flex min-h-screen items-center justify-center bg-background p-4">
