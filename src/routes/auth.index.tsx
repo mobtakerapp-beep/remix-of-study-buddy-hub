@@ -93,31 +93,18 @@ function AuthPage() {
   const signInWithGoogle = async () => {
     setLoading(true);
     try {
-      // Outside the Lovable preview iframe (e.g. Cloudflare Workers, custom
-      // domains) the /~oauth broker doesn't exist -> use Supabase OAuth directly.
-      const inLovablePreview =
-        window.self !== window.top ||
-        window.location.hostname.endsWith("lovable.app") ||
-        window.location.hostname.endsWith("lovableproject.com");
-
-      if (!inLovablePreview) {
-        // Always come back to the production app, not a preview URL.
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: `${PROD_ORIGIN}/auth/callback` },
-        });
-        if (error) throw error;
-
-        return; // full-page redirect to Google
-      }
-
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      // Always use Supabase OAuth directly and return to the current site's
+      // own origin, so no third-party broker screen is ever shown.
+      const origin =
+        typeof window !== "undefined" && window.location.origin
+          ? window.location.origin
+          : PROD_ORIGIN;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${origin}/auth/callback` },
       });
-      if (result.error) throw result.error;
-      if (result.redirected) return;
-      toast.success(ar ? "تم تسجيل الدخول!" : "Signed in!");
-      navigate({ to: "/" });
+      if (error) throw error;
+      return; // full-page redirect to Google
     } catch (error) {
       const raw = error instanceof Error ? error.message : String(error ?? "");
       console.error("Google sign-in failed:", error);
@@ -126,6 +113,7 @@ function AuthPage() {
       setLoading(false);
     }
   };
+
 
 
   return (
