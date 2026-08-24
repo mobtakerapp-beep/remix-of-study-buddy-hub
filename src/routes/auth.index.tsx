@@ -92,16 +92,12 @@ function AuthPage() {
   const signInWithGoogle = async () => {
     setLoading(true);
     try {
-      // Always use Supabase OAuth directly and return to the current site's
-      // own origin, so no third-party broker screen is ever shown.
-      const origin =
-        typeof window !== "undefined" && window.location.origin
-          ? window.location.origin
-          : PROD_ORIGIN;
+      // Always return to the production app domain after Google sign-in.
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${origin}/auth/callback` },
+        options: { redirectTo: `${PROD_ORIGIN}/auth/callback` },
       });
+
       if (error) throw error;
       return; // full-page redirect to Google
     } catch (error) {
