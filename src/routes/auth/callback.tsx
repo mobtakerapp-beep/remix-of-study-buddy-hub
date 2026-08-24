@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -20,7 +20,6 @@ export const Route = createFileRoute("/auth/callback")({
 });
 
 function AuthCallbackPage() {
-  const navigate = useNavigate();
   const [message, setMessage] = useState("جارٍ إكمال تسجيل الدخول…");
 
   useEffect(() => {
@@ -28,52 +27,64 @@ function AuthCallbackPage() {
 
     async function handleCallback() {
       try {
-        const url = new URL(window.location.href);
-        const hash = new URLSearchParams(url.hash.replace(/^#/, ""));
-        const code = url.searchParams.get("code");
-        const error = url.searchParams.get("error") ?? hash.get("error");
-        const errorDescription =
-          url.searchParams.get("error_description") ?? hash.get("error_description");
+        const fullUrl = window.location.href;
+        const url = new URL(fullUrl);
+        
+        // استخراج التوكنات سواء كانت في الـ query أو الـ hash
+        const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+        const searchParams = url.searchParams;
+
+        const error = searchParams.get("error") ?? hashParams.get("error");
+        const errorDescription = searchParams.get("error_description") ?? hashParams.get("error_description");
 
         if (error) {
           throw new Error(errorDescription || error);
         }
 
-        const accessToken = hash.get("access_token");
-        const refreshToken = hash.get("refresh_token");
+        const accessToken = hashParams.get("access_token") ?? searchParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token") ?? searchParams.get("refresh_token");
+        const code = searchParams.get("code");
 
+        // 1. إذا توفرت التوكنات المباشرة، نقوم بضبط الجلسة فوراً
         if (accessToken && refreshToken) {
           const { error: setError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
           if (setError) throw setError;
-        } else if (code) {
+        } 
+        // 2. إذا توفر الكود (PKCE Flow)
+        else if (code) {
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) throw exchangeError;
         }
 
-        // التأكد المباشر من مزامنة الجلسة وحفظ الـ Tokens
-        const { data, error: userError } = await supabase.auth.getSession();
-        if (userError || !data.session) {
+        // التأكد النهائي من وجود جلسة نشطة
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (!sessionData.session) {
+          // محاولة أخيرة للتحقق من المستخدم
           const { data: userData } = await supabase.auth.getUser();
           if (!userData.user) {
-            throw userError ?? new Error("لم تكتمل جلسة تسجيل الدخول.");
+            throw new Error("تعذر تثبيت جلسة الدخول.");
           }
         }
 
         if (!cancelled) {
           toast.success("تم تسجيل الدخول بنجاح!");
           
-          // تحويل مباشر وسليم لنفس الدومين الحالي دون تسريب التوكن أو تخريب الجلسة
-          const origin = window.location.origin;
-          window.location.replace(`${origin}/`);
+          // التوجيه المباشر إلى الصفحة الرئيسية لنفس الدومين الحالي (Cloudflare Workers)
+          window.location.replace(`${window.location.origin}/`);
         }
       } catch (err) {
         const text = err instanceof Error ? err.message : "فشل تسجيل الدخول";
         if (!cancelled) {
           setMessage(text);
           toast.error(text);
+          // في حالة الخلل يتم إرجاعه لصفحة الدخول على نفس الدومين
+          setTimeout(() => {
+            window.location.replace(`${window.location.origin}/auth`);
+          }, 2000);
         }
       }
     }
@@ -82,7 +93,7 @@ function AuthCallbackPage() {
     return () => {
       cancelled = true;
     };
-  }, [navigate]);
+  }, []);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-6 text-center">
