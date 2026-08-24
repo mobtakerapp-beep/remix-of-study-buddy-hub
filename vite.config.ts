@@ -1,14 +1,12 @@
 import { defineConfig } from "vite";
-import { tanstackStart } from "@tanstack/start/vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
   plugins: [
     tsconfigPaths(),
+    TanStackRouterVite({ target: "react", autoCodeSplitting: true }),
     react(),
-    tanstackStart({
-      server: { entry: "server" },
-    }),
   ],
 });
