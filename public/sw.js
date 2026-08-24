@@ -1,7 +1,6 @@
-const CACHE = "mulakhasy-v1";
+const CACHE = "mulakhasy-v2";
 const OFFLINE_SHELL = [
   "/",
-  "/index.html",
   "/manifest.webmanifest",
   "/icon-192.png",
   "/icon-512.png",
@@ -13,10 +12,14 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(OFFLINE_SHELL))
+      .then((cache) =>
+        // Cache each asset independently so one missing file can't fail install.
+        Promise.all(OFFLINE_SHELL.map((url) => cache.add(url).catch(() => undefined))),
+      )
       .then(() => self.skipWaiting()),
   );
 });
+
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
