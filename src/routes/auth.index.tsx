@@ -13,8 +13,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { useI18n } from "@/lib/i18n";
 
-const PROD_ORIGIN = "https://mulakhasy-ai.mobtakerapp.workers.dev";
-
 export const Route = createFileRoute("/auth/")({
   head: () => ({
     meta: [
@@ -68,7 +66,7 @@ function AuthPage() {
           password,
           options: {
             data: { teacher_name: teacherName, school },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
         if (error) throw error;
@@ -95,7 +93,7 @@ function AuthPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${PROD_ORIGIN}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
